@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ name }}</title>
+    <style>
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: Consolas, monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ name }}</h1>
+
+    <h2>Mã nguồn:</h2>
+    <pre><code>{{ code }}</code></pre>
+
+    <form action="/run/{{ name }}" method="post">
+        <button type="submit">Run</button>
+    </form>
+</body>
+</html>

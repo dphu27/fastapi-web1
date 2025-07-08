@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách bài tập</title>
+</head>
+<body>
+    <h1>Danh sách bài tập</h1>
+    <ul>
+        {% for title in titles %}
+            <li><a href="/exercise/{{ title }}">{{ title }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
