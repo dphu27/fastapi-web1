@@ -1,19 +1,39 @@
+# main.py
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import importlib.util
 import os
+from contextlib import asynccontextmanager
 
-app = FastAPI()
+from producer import KafkaProducer
+from consumer import KafkaConsumer
+
+# app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
+producer = KafkaProducer()
+consumer = KafkaConsumer(topic="exercise-log")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await producer.start()
+    await consumer.start()
+    print(" Kafka started")
+
+    yield  # Cho FastAPI khởi động xong mới tiếp tục
+
+    await producer.stop()
+    await consumer.stop()
+    print(" Kafka stopped")
+
+app = FastAPI(lifespan=lifespan)
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {
         "request": request,
         "titles": ["Bài 1.1", "Bài 1.2"]
     })
-
 
 @app.get("/exercise/{name}", response_class=HTMLResponse)
 async def show_exercise(request: Request, name: str):
@@ -41,7 +61,6 @@ async def show_exercise(request: Request, name: str):
         "code": code
     })
 
-
 @app.post("/run/{name}", response_class=HTMLResponse)
 async def run_exercise(request: Request, name: str):
     mapping = {
@@ -61,6 +80,13 @@ async def run_exercise(request: Request, name: str):
             spec.loader.exec_module(module)
 
             result = module.run()
+
+            # Gửi log qua Kafka
+            await producer.send("exercise-log", {
+                "exercise": name,
+                "result": result
+            })
+
     except Exception as e:
         result = f"Lỗi khi chạy bài {name}: {str(e)}"
 
